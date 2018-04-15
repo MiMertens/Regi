@@ -177,7 +177,7 @@ class Registratie(tkinter.Tk):
         button_lijst.grid(column=0, row=12, sticky='EW', pady=5, padx=5)
 
         # Button Details
-        button_detail = tkinter.Button(self, text='Meer details')
+        button_detail = tkinter.Button(self, text='Meer details', command=self.OpenDetail)
         button_detail.grid(column=1, row=12, sticky='EW', pady=5, padx=5)
 
         # Set the treeview
@@ -202,6 +202,9 @@ class Registratie(tkinter.Tk):
         self.tree.column('#10', width=0)
         self.tree.grid(column=2, row=2, columnspan=4, rowspan=10, sticky='nsew', padx=5)
         self.tree.bind("<Double-1>", self.OnDoubleClick)
+
+    def OpenDetail(self):
+        self.app = details(None)
 
     def EmtyEntrybox(self):
         self.Entry_Batch.config(state = 'normal')
@@ -264,6 +267,55 @@ class Registratie(tkinter.Tk):
     #        # voer de query uit
     #    cursor.execute("""insert into batch (, Player_ID, Score_Score, Score_Date) 
     #                            values (%s, %s, %s, %s);""", (game_slice, player, score, datum))
+
+class details(tkinter.Tk):
+    def __init__(self, parent):
+        # constructor voor de tkinter
+        tkinter.Tk.__init__(self, parent)
+        # verwijzing naar de parent
+        self.parent = parent
+        # roep de methode initialize aan
+        self.DetailWindow()
+
+    def DetailWindow(self):
+        # label naam
+        label_Sys = tkinter.Label(self, text='Opbrengst Batch ', font=('Calibri', 16), anchor='e')
+        label_Sys.grid(column=2, row=0, sticky='EW')
+
+         # Set the treeview
+        self.tree = ttk.Treeview(self, columns=('Materiaal', 'Recyclebaar', 'Kilogram', 'Waarde'))
+        # naam/ positie waardes voor de treeview
+        self.tree.heading('#1', text='Materiaal')
+        self.tree.heading('#2', text='Recyclebaar')
+        self.tree.heading('#3', text='Kilogram')
+        self.tree.heading('#4', text='Waarde')
+        self.tree.column('#0', minwidth=0)
+        self.tree.column('#0', width=0)
+        self.tree.grid(column=1, row=1, columnspan=4, rowspan=10, sticky='nsew', padx=5)
+        #self.tree.bind("<Double-1>", self.OnDoubleClick)
+        self.GetMateriaal()
+
+    def GetMateriaal(self):
+        # de treeview leegmaken
+        for row in self.tree.get_children():
+            self.tree.delete(row)
+
+        cursor = conn.cursor()
+        # voer de query uit
+        cursor.execute("""SELECT
+	                        m.Materiaalsoort,
+                            m.Recyclebaar,
+	                        b.Kilogram,
+	                        round(d.Dagprijs * b.Kilogram,2) AS Waarde
+                          FROM 
+                            Batch_Materiaal b
+	                        INNER JOIN Materiaal m ON b.Materiaal_ID = m.Materiaal_ID
+	                        INNer JOIN Dagprijs d on m.Materiaal_ID = d.Materiaal_ID
+                          Where 
+	                        b.Batch_ID = 1""")
+        for row in cursor:
+            self.tree.insert('', 0, values=(row[0], row[1], row[2], row[3]))
+
 
 if __name__ == "__main__":
     app = Login(None)
