@@ -280,6 +280,7 @@ class Registratie(tkinter.Tk):
         self.recycle = int(self.Entry_Apparaat.get())
         self.aantal = int(self.Entry_Aantal.get()) 
         self.inkom = self.Entry_inkom.get()
+        self.sloop = self.Entry_sloop.get()
         self.voortgang = self.Entry_voortgang.get()      
 
     def InsertBatch(self):
@@ -300,9 +301,9 @@ class Registratie(tkinter.Tk):
         cursor = conn.cursor()
         try:
             cursor.execute("""UPDATE batch 
-                              SET Locatie_ID =%s, Opslag_ID =%s, Medewerker_ID =%s, Recycle_ID =%s, Aantal =%s, Inkomst_Datum =%s, Voortgang =%s
+                              SET Locatie_ID =%s, Opslag_ID =%s, Medewerker_ID =%s, Recycle_ID =%s, Aantal =%s, Inkomst_Datum =%s, Sloop_Datum =%s, Voortgang =%s
                               WHERE Batch_ID = %s
-                              """,(self.locatie, self.opslag, self.medewerker, self.recycle, self.aantal, self.inkom, self.voortgang, self.batch))
+                              """,(self.locatie, self.opslag, self.medewerker, self.recycle, self.aantal, self.inkom, self.sloop,self.voortgang, self.batch))
             conn.commit()
             self.EmtyEntrybox()
         except :
@@ -326,43 +327,43 @@ class details(tkinter.Tk):
 
         # label batch
         label_Batch = tkinter.Label(self, text='Batch ID: ', anchor="w")
-        label_Batch.grid(column=0, row=1, sticky='EW')
+        label_Batch.grid(column=0, row=2, sticky='EW')
 
         # entry batch
         self.Entry_Batch = ttk.Entry(self)
-        self.Entry_Batch.grid(column=1, row=1, sticky='EW')
+        self.Entry_Batch.grid(column=1, row=2, sticky='EW')
 
         # label materiaal
         label_Materiaal = tkinter.Label(self, text='Materiaal ID: ', anchor="w")
-        label_Materiaal.grid(column=0, row=2, sticky='EW')
+        label_Materiaal.grid(column=0, row=3, sticky='EW')
 
         # entry materiaal
         self.Entry_Materiaal = ttk.Entry(self)
-        self.Entry_Materiaal.grid(column=1, row=2, sticky='EW')
+        self.Entry_Materiaal.grid(column=1, row=3, sticky='EW')
 
         # label killogram
         label_Kilo = tkinter.Label(self, text='Kilogram: ', anchor="w")
-        label_Kilo.grid(column=0, row=3, sticky='EW')
+        label_Kilo.grid(column=0, row=4, sticky='EW')
 
         # entry killogram
         self.Entry_Kilo = ttk.Entry(self)
-        self.Entry_Kilo.grid(column=1, row=3, sticky='EW')
+        self.Entry_Kilo.grid(column=1, row=4, sticky='EW')
 
         # label totaal
         label_Totaal = tkinter.Label(self, text='Totaal Waarde €: ', anchor="w")
-        label_Totaal.grid(column=0, row=4, sticky='EW')
+        label_Totaal.grid(column=0, row=5, sticky='EW')
 
         # entry totaal
         self.Entry_Totaal = ttk.Entry(self, state='disabled')
-        self.Entry_Totaal.grid(column=1, row=4, sticky='EW')
+        self.Entry_Totaal.grid(column=1, row=5, sticky='EW')
 
         # Button get details
         button_overzicht = tkinter.Button(self, text='Geef opbrengst weer', command=self.GetMateriaal)
-        button_overzicht.grid(column=0, row=5, sticky='EW')
+        button_overzicht.grid(column=0, row=6, sticky='EW')
 
         # Button Insert
         button_Insert = tkinter.Button(self, text='Voeg materiaal toe', command=self.InsertMateriaal)
-        button_Insert.grid(column=1, row=5, sticky='EW')
+        button_Insert.grid(column=1, row=6, sticky='EW')
 
          # Set the treeview
         self.tree = ttk.Treeview(self, columns=('Materiaal', 'Recyclebaar', 'Kilogram', 'Waarde'))
@@ -381,6 +382,7 @@ class details(tkinter.Tk):
             self.tree.delete(row)
 
         batch = self.Entry_Batch.get()
+
         cursor = conn.cursor()
         # voer de query uit
         try:
@@ -395,7 +397,7 @@ class details(tkinter.Tk):
 	                    INNER JOIN Materiaal m ON b.Materiaal_ID = m.Materiaal_ID
 	                    INNER JOIN Dagprijs d on m.Materiaal_ID = d.Materiaal_ID
                     Where 
-	                    b.Batch_ID = %s""", (batch))
+	                    b.Batch_ID = %s""", [batch])
             for row in cursor:
                 self.tree.insert('', 0, values=(row[0], row[1], row[2], row[3]))
         except :
@@ -410,7 +412,7 @@ class details(tkinter.Tk):
                         INNER JOIN Materiaal m ON b.Materiaal_ID = m.Materiaal_ID
                         INNER JOIN Dagprijs d on m.Materiaal_ID = d.Materiaal_ID
                     WHERE
-	                    b.Batch_ID = %s""", (batch))
+	                    b.Batch_ID = %s""", [batch])
             for row in cursor:
                 self.Entry_Totaal.config(state = 'normal')
                 self.Entry_Totaal.delete(0, 'end')
@@ -418,6 +420,7 @@ class details(tkinter.Tk):
                 self.Entry_Totaal.config(state = 'disabled')
         except :
             pass
+
     def InsertMateriaal(self):
         Batch = int(self.Entry_Batch.get())
         Materiaal = int(self.Entry_Materiaal.get())
@@ -456,7 +459,7 @@ class OverzichtMedewerkers(tkinter.Tk):
         self.Entry_Datum.grid(column=1, row=2, sticky='EW')
 
         # Button overzicht
-        button_Overzicht = tkinter.Button(self, text='Geef overzicht weer')
+        button_Overzicht = tkinter.Button(self, text='Geef overzicht weer', command=self.GetOverzicht)
         button_Overzicht.grid(column=1, row=3, sticky='EW')
 
         # Set the treeview
@@ -467,6 +470,42 @@ class OverzichtMedewerkers(tkinter.Tk):
         self.tree.column('#0', minwidth=0)
         self.tree.column('#0', width=0)
         self.tree.grid(column=2, row=2, columnspan=2, rowspan=10, sticky='nsew', pady=5, padx=5)
+
+    def GetOverzicht(self):
+        # de treeview leegmaken
+        for row in self.tree.get_children():
+            self.tree.delete(row)
+
+        self.datum = self.Entry_Datum.get()
+
+        cursor = conn.cursor()
+        try:
+            # voer de query uit
+            cursor.execute("""
+                    SELECT
+	                    CONCAT(m.Medewerker_ID, ' ', m.Naam),
+	                    (SELECT 
+     	                    ROUND(SUM(d.DagPrijs * b.Kilogram),2)
+                        FROM
+      	                    Batch_Materiaal b
+    	                    INNER JOIN Materiaal ma ON b.Materiaal_ID = ma.Materiaal_ID
+    	                    INNER JOIN Dagprijs d on ma.Materiaal_ID = d.Materiaal_ID
+                            WHERE 
+     	                    b.Batch_ID = ba.Batch_ID) AS Opbrengst
+                    FROM
+	                    Medewerker m
+	                    INNER JOIN Batch ba ON m.Medewerker_ID = ba.Medewerker_ID
+                    WHERE
+	                    ba.Sloop_Datum = %s
+                    GROUP BY
+	                    m.Medewerker_ID, m.Naam
+                    ORDER BY
+	                    Opbrengst ASC""", [self.datum])
+            for row in cursor:
+                self.tree.insert('', 0, values=(row[0], row[1]))
+        except :
+            pass
+    
 
 if __name__ == "__main__":
     app = Login(None)
