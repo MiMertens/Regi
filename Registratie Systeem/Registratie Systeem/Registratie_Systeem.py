@@ -59,14 +59,18 @@ class Login(tkinter.Tk):
         # connectie naar de database openen
         cursor = conn.cursor()
         # Query uitvoeren
-        cursor.execute("SELECT Medewerker_ID, Wachtwoord, Functie FROM medewerker Where Medewerker_ID= %s AND Wachtwoord= %s",  (ID, WW))
-        # Check of het wachtwoordt klopt
-        for row in cursor:
-            if row[1] == WW:  
-                self.Func = row[2]
-                # open het registratie scherm
-                self.app = Registratie(None)
-                self.destroy()
+        try:
+            cursor.execute("SELECT Medewerker_ID, Wachtwoord, Functie FROM medewerker Where Medewerker_ID= %s AND Wachtwoord= %s",  (ID, WW))
+            # Check of het wachtwoordt klopt
+            for row in cursor:
+                if row[1] == WW:  
+                    self.Func = row[2]
+                    # open het registratie scherm
+                    self.app = Registratie(None)
+                    self.app.title('Batch registratie systeem')
+                    self.destroy()
+        except :
+            pass
 
 class Registratie(tkinter.Tk):
     def __init__(self, parent):
@@ -164,12 +168,12 @@ class Registratie(tkinter.Tk):
         self.Entry_voortgang = ttk.Entry(self)
         self.Entry_voortgang.grid(column=1, row=10, sticky='EW', pady=5)
 
-        # Button Get data
-        button_set = tkinter.Button(self, text='Voeg batch toe')
+        # Button set data
+        button_set = tkinter.Button(self, text='Voeg batch toe', command=self.InsertBatch)
         button_set.grid(column=0, row=11, sticky='EW', pady=5, padx=5)
 
         # Button Get data
-        button_update = tkinter.Button(self, text='Update batch')
+        button_update = tkinter.Button(self, text='Update batch', command=self.UpdateBatch)
         button_update.grid(column=1, row=11, sticky='EW', pady=5, padx=5)
 
         # Button haal lijst op
@@ -205,12 +209,15 @@ class Registratie(tkinter.Tk):
 
     def OpenDetail(self):
         self.app = details(None)
+        self.app.title('Batch registratie systeem')
 
     def EmtyEntrybox(self):
         self.Entry_Batch.config(state = 'normal')
         self.Entry_Batch.delete(0, 'end')
+        self.Entry_Locatie.config(state = 'normal')
         self.Entry_Locatie.delete(0, 'end')
         self.Entry_Opslag.delete(0, 'end')
+        self.Entry_OpslagRij.config(state = 'normal')
         self.Entry_OpslagRij.delete(0, 'end')
         self.Entry_Medewerker.delete(0, 'end')
         self.Entry_Apparaat.delete(0, 'end')
@@ -228,6 +235,7 @@ class Registratie(tkinter.Tk):
         self.Entry_Locatie.insert(0, self.tree.item(item)['values'][1])
         self.Entry_Opslag.insert(0, self.tree.item(item)['values'][2]) 
         self.Entry_OpslagRij.insert(0, self.tree.item(item)['values'][3])
+        self.Entry_OpslagRij.config(state = 'disabled')
         self.Entry_Medewerker.insert(0, self.tree.item(item)['values'][4]) 
         self.Entry_Apparaat.insert(0, self.tree.item(item)['values'][5]) 
         self.Entry_Aantal.insert(0, self.tree.item(item)['values'][6]) 
@@ -241,32 +249,65 @@ class Registratie(tkinter.Tk):
             self.tree.delete(row)
 
         cursor = conn.cursor()
-        # voer de query uit
-        cursor.execute("""SELECT 
-	                        b.Batch_ID, 
-	                        l.Adres, 
-	                        o.Adres,
-	                        o.Omschrijving,
-	                        m.Naam,
-	                        r.Naam,
-	                        b.Aantal,
-	                        b.Inkomst_Datum,
-	                        b.Sloop_Datum,
-	                        b.Voortgang
-                          FROM 
-	                        batch b
-	                        INNER JOIN locatie l ON b.Locatie_ID = l.Locatie_ID
-	                        INNER JOIN opslag o ON b.Opslag_ID = o.Opslag_ID
-	                        INNER JOIN medewerker m ON b.Medewerker_ID = m.Medewerker_ID
-	                        INNER JOIN recyclemateriaal r ON b.Recycle_ID = r.Recycle_ID""")
-        for row in cursor:
-            self.tree.insert('', 0, values=(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9]))
+        try:
+            # voer de query uit
+            cursor.execute("""SELECT 
+                                    b.Batch_ID, 
+                                    concat(b.Locatie_ID,'. ',l.Adres),
+                                    concat(b.Opslag_ID, '. ',o.Adres),
+                                    o.Omschrijving,
+                                    concat(b.Medewerker_ID, '. ',m.Naam),
+                                    concat(b.Recycle_ID,'. ',r.Naam),
+                                    b.Aantal,
+                                    b.Inkomst_Datum,
+                                    b.Sloop_Datum,
+                                    b.Voortgang
+                                FROM 
+	                                batch b
+                                    INNER JOIN locatie l ON b.Locatie_ID = l.Locatie_ID
+                                    INNER JOIN opslag o ON b.Opslag_ID = o.Opslag_ID
+                                    INNER JOIN medewerker m ON b.Medewerker_ID = m.Medewerker_ID
+                                    INNER JOIN recyclemateriaal r ON b.Recycle_ID = r.Recycle_ID""")
+            for row in cursor:
+                self.tree.insert('', 0, values=(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9]))
+        except :
+            pass
 
-    #def InsertBatch(self):
-    #    cursor = conn.cursor()
-    #        # voer de query uit
-    #    cursor.execute("""insert into batch (, Player_ID, Score_Score, Score_Date) 
-    #                            values (%s, %s, %s, %s);""", (game_slice, player, score, datum))
+    def Getentry(self):
+        self.batch = int(self.Entry_Batch.get())
+        self.locatie = int(self.Entry_Locatie.get())
+        self.opslag = int(self.Entry_Opslag.get())
+        self.medewerker = int(self.Entry_Medewerker.get())
+        self.recycle = int(self.Entry_Apparaat.get())
+        self.aantal = int(self.Entry_Aantal.get()) 
+        self.inkom = self.Entry_inkom.get()
+        self.voortgang = self.Entry_voortgang.get()      
+
+    def InsertBatch(self):
+        self.Getentry()
+            # voer de query uit
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""insert into batch (Locatie_ID, Opslag_ID, Medewerker_ID, Recycle_ID, Aantal, Inkomst_Datum, Voortgang) 
+                                values (%s, %s, %s, %s, %s, %s, %s);""",(self.locatie, self.opslag, self.medewerker, self.recycle, self.aantal, self.inkom, self.voortgang))
+            conn.commit()
+            self.EmtyEntrybox()
+        except :
+            pass
+
+    def UpdateBatch(self):
+        self.Getentry()
+            # voer de query uit
+        cursor = conn.cursor()
+        try:
+            cursor.execute("""UPDATE batch 
+                              SET Locatie_ID =%s, Opslag_ID =%s, Medewerker_ID =%s, Recycle_ID =%s, Aantal =%s, Inkomst_Datum =%s, Voortgang =%s
+                              WHERE Batch_ID = %s
+                              """,(self.locatie, self.opslag, self.medewerker, self.recycle, self.aantal, self.inkom, self.voortgang, self.batch))
+            conn.commit()
+            self.EmtyEntrybox()
+        except :
+            pass       
 
 class details(tkinter.Tk):
     def __init__(self, parent):
@@ -278,9 +319,43 @@ class details(tkinter.Tk):
         self.DetailWindow()
 
     def DetailWindow(self):
+        # verdele het form in een gid voor het possitioneren van de gui elementen
+        self.grid()
         # label naam
-        label_Sys = tkinter.Label(self, text='Opbrengst Batch ', font=('Calibri', 16), anchor='e')
-        label_Sys.grid(column=2, row=0, sticky='EW')
+        label_Sys = tkinter.Label(self, text='Opbrengst Batch ', font=('Calibri', 20), anchor='e')
+        label_Sys.grid(column=3, row=1, sticky='EW')
+
+        # label batch
+        label_Batch = tkinter.Label(self, text='Batch ID: ', anchor="w")
+        label_Batch.grid(column=0, row=1, sticky='EW')
+
+        # entry batch
+        self.Entry_Batch = ttk.Entry(self)
+        self.Entry_Batch.grid(column=1, row=1, sticky='EW')
+
+        # label materiaal
+        label_Materiaal = tkinter.Label(self, text='Materiaal ID: ', anchor="w")
+        label_Materiaal.grid(column=0, row=2, sticky='EW')
+
+        # entry materiaal
+        self.Entry_Materiaal = ttk.Entry(self)
+        self.Entry_Materiaal.grid(column=1, row=2, sticky='EW')
+
+        # label killogram
+        label_Kilo = tkinter.Label(self, text='Kilogram: ', anchor="w")
+        label_Kilo.grid(column=0, row=3, sticky='EW')
+
+        # entry killogram
+        self.Entry_Kilo = ttk.Entry(self)
+        self.Entry_Kilo.grid(column=1, row=3, sticky='EW')
+
+        # Button get details
+        button_overzicht = tkinter.Button(self, text='Geef opbrengst weer', command=self.GetMateriaal)
+        button_overzicht.grid(column=0, row=4, sticky='EW')
+
+        # Button Insert
+        button_Insert = tkinter.Button(self, text='Voeg materiaal toe', command=self.InsertMateriaal)
+        button_Insert.grid(column=1, row=4, sticky='EW')
 
          # Set the treeview
         self.tree = ttk.Treeview(self, columns=('Materiaal', 'Recyclebaar', 'Kilogram', 'Waarde'))
@@ -291,31 +366,45 @@ class details(tkinter.Tk):
         self.tree.heading('#4', text='Waarde')
         self.tree.column('#0', minwidth=0)
         self.tree.column('#0', width=0)
-        self.tree.grid(column=1, row=1, columnspan=4, rowspan=10, sticky='nsew', padx=5)
-        #self.tree.bind("<Double-1>", self.OnDoubleClick)
-        self.GetMateriaal()
+        self.tree.grid(column=2, row=2, columnspan=4, rowspan=10, sticky='nsew', pady=5, padx=5)
 
     def GetMateriaal(self):
         # de treeview leegmaken
         for row in self.tree.get_children():
             self.tree.delete(row)
 
+        batch = self.Entry_Batch.get()
         cursor = conn.cursor()
         # voer de query uit
-        cursor.execute("""SELECT
-	                        m.Materiaalsoort,
-                            m.Recyclebaar,
-	                        b.Kilogram,
-	                        round(d.Dagprijs * b.Kilogram,2) AS Waarde
-                          FROM 
-                            Batch_Materiaal b
-	                        INNER JOIN Materiaal m ON b.Materiaal_ID = m.Materiaal_ID
-	                        INNer JOIN Dagprijs d on m.Materiaal_ID = d.Materiaal_ID
-                          Where 
-	                        b.Batch_ID = 1""")
-        for row in cursor:
-            self.tree.insert('', 0, values=(row[0], row[1], row[2], row[3]))
+        try:
+            cursor.execute("""SELECT
+	                m.Materiaalsoort,
+                    m.Recyclebaar,
+	                b.Kilogram,
+	                round(d.Dagprijs * b.Kilogram,2) AS Waarde
+                    FROM 
+                    Batch_Materiaal b
+	                INNER JOIN Materiaal m ON b.Materiaal_ID = m.Materiaal_ID
+	                INNer JOIN Dagprijs d on m.Materiaal_ID = d.Materiaal_ID
+                    Where 
+	                b.Batch_ID = %s""", (batch))
+            for row in cursor:
+                self.tree.insert('', 0, values=(row[0], row[1], row[2], row[3]))
+        except :
+            pass
 
+    def InsertMateriaal(self):
+        Batch = int(self.Entry_Batch.get())
+        Materiaal = int(self.Entry_Materiaal.get())
+        Kilo = float(self.Entry_Kilo.get())
+        cursor = conn.cursor()
+        # voer de query uit
+        try:
+            cursor.execute("""insert into batch_materiaal (Batch_ID, Materiaal_ID, Kilogram) 
+                                values (%s, %s, %s);""",(Batch, Materiaal, Kilo))
+            conn.commit()
+        except Exception as e:
+            print(e)
 
 if __name__ == "__main__":
     app = Login(None)
