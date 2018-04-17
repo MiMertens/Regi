@@ -3,11 +3,14 @@ import tkinter
 from tkinter import ttk
 
 # connection details voor de database
-conn = MySQLdb.connect(host='localhost',
+try:
+    conn = MySQLdb.connect(host='localhost',
                         port=3307,
                         database='sbsh',
                         user='root',
                         password='usbw')
+except :
+    print("Er is geen verbinding met de database")
 
 class Login(tkinter.Tk):
     def __init__(self, parent):
@@ -112,77 +115,73 @@ class Registratie(tkinter.Tk):
         self.Entry_Opslag = ttk.Entry(self)
         self.Entry_Opslag.grid(column=1, row=3, sticky='EW', pady=5)
 
-        # label opslagrij
-        label_OpslagRij = tkinter.Label(self, text='Opslag rij: ', anchor="w")
-        label_OpslagRij.grid(column=0, row=4, sticky='EW', pady=5)
-
-        # entry opslag
-        self.Entry_OpslagRij = ttk.Entry(self)
-        self.Entry_OpslagRij.grid(column=1, row=4, sticky='EW', pady=5)
-
         # label medewerker
         label_Medewerker = tkinter.Label(self, text='Medewerker ID: ', anchor="w")
-        label_Medewerker.grid(column=0, row=5, sticky='EW', pady=5)
+        label_Medewerker.grid(column=0, row=4, sticky='EW', pady=5)
 
         # entry medewerker
         self.Entry_Medewerker = ttk.Entry(self)
-        self.Entry_Medewerker.grid(column=1, row=5, sticky='EW', pady=5)
+        self.Entry_Medewerker.grid(column=1, row=4, sticky='EW', pady=5)
 
         # label apparaat
         label_Apparaat = tkinter.Label(self, text='Recycle: ', anchor="w")
-        label_Apparaat.grid(column=0, row=6, sticky='EW', pady=5)
+        label_Apparaat.grid(column=0, row=5, sticky='EW', pady=5)
 
         # entry apparaat
         self.Entry_Apparaat = ttk.Entry(self)
-        self.Entry_Apparaat.grid(column=1, row=6, sticky='EW', pady=5)
+        self.Entry_Apparaat.grid(column=1, row=5, sticky='EW', pady=5)
 
         # label aantal
         label_Aantal = tkinter.Label(self, text='Aantal: ', anchor="w")
-        label_Aantal.grid(column=0, row=7, sticky='EW', pady=5)
+        label_Aantal.grid(column=0, row=6, sticky='EW', pady=5)
 
         # entry apparaat
         self.Entry_Aantal = ttk.Entry(self)
-        self.Entry_Aantal.grid(column=1, row=7, sticky='EW', pady=5)
+        self.Entry_Aantal.grid(column=1, row=6, sticky='EW', pady=5)
 
         # label inkom datum
         label_inkom = tkinter.Label(self, text='Inkomst datum: ', anchor="w")
-        label_inkom.grid(column=0, row=8, sticky='EW', pady=5)
+        label_inkom.grid(column=0, row=7, sticky='EW', pady=5)
 
         # entry inkom datum
         self.Entry_inkom = ttk.Entry(self)
-        self.Entry_inkom.grid(column=1, row=8, sticky='EW', pady=5)
+        self.Entry_inkom.grid(column=1, row=7, sticky='EW', pady=5)
 
         # label sloop datum
         label_sloop = tkinter.Label(self, text='Sloop datum: ', anchor="w")
-        label_sloop.grid(column=0, row=9, sticky='EW', pady=5)
+        label_sloop.grid(column=0, row=8, sticky='EW', pady=5)
 
         # entry sloop datum
         self.Entry_sloop = ttk.Entry(self)
-        self.Entry_sloop.grid(column=1, row=9, sticky='EW', pady=5)
+        self.Entry_sloop.grid(column=1, row=8, sticky='EW', pady=5)
 
         # label voortgang
         label_voortgang = tkinter.Label(self, text='Voortgang: ', anchor="w")
-        label_voortgang.grid(column=0, row=10, sticky='EW', pady=5)
+        label_voortgang.grid(column=0, row=9, sticky='EW', pady=5)
 
         # entry voortgang
         self.Entry_voortgang = ttk.Entry(self)
-        self.Entry_voortgang.grid(column=1, row=10, sticky='EW', pady=5)
+        self.Entry_voortgang.grid(column=1, row=9, sticky='EW', pady=5)
 
         # Button set data
         button_set = tkinter.Button(self, text='Voeg batch toe', command=self.InsertBatch)
-        button_set.grid(column=0, row=11, sticky='EW', pady=5, padx=5)
+        button_set.grid(column=0, row=10, sticky='EW', pady=5, padx=5)
 
         # Button Get data
         button_update = tkinter.Button(self, text='Update batch', command=self.UpdateBatch)
-        button_update.grid(column=1, row=11, sticky='EW', pady=5, padx=5)
+        button_update.grid(column=1, row=10, sticky='EW', pady=5, padx=5)
 
         # Button haal lijst op
         button_lijst = tkinter.Button(self, text='Refresh lijst', command=self.Getbatch)
-        button_lijst.grid(column=0, row=12, sticky='EW', pady=5, padx=5)
+        button_lijst.grid(column=0, row=11, sticky='EW', pady=5, padx=5)
 
         # Button Details
         button_detail = tkinter.Button(self, text='Meer details', command=self.OpenDetail)
-        button_detail.grid(column=1, row=12, sticky='EW', pady=5, padx=5)
+        button_detail.grid(column=1, row=11, sticky='EW', pady=5, padx=5)
+
+        # Button Details
+        button_Moverzicht = tkinter.Button(self, text='Medewerker Overzicht', command=self.MedewerkerOverzicht)
+        button_Moverzicht.grid(column=0, row=12, columnspan=2, sticky='EW', pady=5, padx=5)
 
         # Set the treeview
         self.tree = ttk.Treeview(self, columns=('Batch_ID', 'Adres', 'Adres', 'Omschrijving', 'Naam', 'Naam', 'Aantal', 'Inkomst_datum', 'Sloop_Datum', 'Voortgang'))
@@ -211,14 +210,16 @@ class Registratie(tkinter.Tk):
         self.app = details(None)
         self.app.title('Batch registratie systeem')
 
+    def MedewerkerOverzicht(self):
+        self.app = OverzichtMedewerkers(None)
+        self.app.title('Medewerker overzicht')
+
     def EmtyEntrybox(self):
         self.Entry_Batch.config(state = 'normal')
         self.Entry_Batch.delete(0, 'end')
         self.Entry_Locatie.config(state = 'normal')
         self.Entry_Locatie.delete(0, 'end')
         self.Entry_Opslag.delete(0, 'end')
-        self.Entry_OpslagRij.config(state = 'normal')
-        self.Entry_OpslagRij.delete(0, 'end')
         self.Entry_Medewerker.delete(0, 'end')
         self.Entry_Apparaat.delete(0, 'end')
         self.Entry_Aantal.delete(0, 'end')
@@ -234,8 +235,6 @@ class Registratie(tkinter.Tk):
         self.Entry_Batch.config(state = 'disabled')
         self.Entry_Locatie.insert(0, self.tree.item(item)['values'][1])
         self.Entry_Opslag.insert(0, self.tree.item(item)['values'][2]) 
-        self.Entry_OpslagRij.insert(0, self.tree.item(item)['values'][3])
-        self.Entry_OpslagRij.config(state = 'disabled')
         self.Entry_Medewerker.insert(0, self.tree.item(item)['values'][4]) 
         self.Entry_Apparaat.insert(0, self.tree.item(item)['values'][5]) 
         self.Entry_Aantal.insert(0, self.tree.item(item)['values'][6]) 
@@ -257,7 +256,7 @@ class Registratie(tkinter.Tk):
                                     concat(b.Opslag_ID, '. ',o.Adres),
                                     o.Omschrijving,
                                     concat(b.Medewerker_ID, '. ',m.Naam),
-                                    concat(b.Recycle_ID,'. ',r.Naam),
+                                    concat(b.Recycle_ID,'. ',r.Naam, ' ',r.Type ),
                                     b.Aantal,
                                     b.Inkomst_Datum,
                                     b.Sloop_Datum,
@@ -349,13 +348,21 @@ class details(tkinter.Tk):
         self.Entry_Kilo = ttk.Entry(self)
         self.Entry_Kilo.grid(column=1, row=3, sticky='EW')
 
+        # label totaal
+        label_Totaal = tkinter.Label(self, text='Totaal Waarde €: ', anchor="w")
+        label_Totaal.grid(column=0, row=4, sticky='EW')
+
+        # entry totaal
+        self.Entry_Totaal = ttk.Entry(self, state='disabled')
+        self.Entry_Totaal.grid(column=1, row=4, sticky='EW')
+
         # Button get details
         button_overzicht = tkinter.Button(self, text='Geef opbrengst weer', command=self.GetMateriaal)
-        button_overzicht.grid(column=0, row=4, sticky='EW')
+        button_overzicht.grid(column=0, row=5, sticky='EW')
 
         # Button Insert
         button_Insert = tkinter.Button(self, text='Voeg materiaal toe', command=self.InsertMateriaal)
-        button_Insert.grid(column=1, row=4, sticky='EW')
+        button_Insert.grid(column=1, row=5, sticky='EW')
 
          # Set the treeview
         self.tree = ttk.Treeview(self, columns=('Materiaal', 'Recyclebaar', 'Kilogram', 'Waarde'))
@@ -363,7 +370,7 @@ class details(tkinter.Tk):
         self.tree.heading('#1', text='Materiaal')
         self.tree.heading('#2', text='Recyclebaar')
         self.tree.heading('#3', text='Kilogram')
-        self.tree.heading('#4', text='Waarde')
+        self.tree.heading('#4', text='Waarde in €')
         self.tree.column('#0', minwidth=0)
         self.tree.column('#0', width=0)
         self.tree.grid(column=2, row=2, columnspan=4, rowspan=10, sticky='nsew', pady=5, padx=5)
@@ -377,22 +384,40 @@ class details(tkinter.Tk):
         cursor = conn.cursor()
         # voer de query uit
         try:
-            cursor.execute("""SELECT
-	                m.Materiaalsoort,
-                    m.Recyclebaar,
-	                b.Kilogram,
-	                round(d.Dagprijs * b.Kilogram,2) AS Waarde
+            cursor.execute("""
+                    SELECT
+	                    m.Materiaalsoort,
+                        m.Recyclebaar,
+	                    b.Kilogram,
+	                    round(d.Dagprijs * b.Kilogram,2) AS Waarde
                     FROM 
-                    Batch_Materiaal b
-	                INNER JOIN Materiaal m ON b.Materiaal_ID = m.Materiaal_ID
-	                INNer JOIN Dagprijs d on m.Materiaal_ID = d.Materiaal_ID
+                        Batch_Materiaal b
+	                    INNER JOIN Materiaal m ON b.Materiaal_ID = m.Materiaal_ID
+	                    INNER JOIN Dagprijs d on m.Materiaal_ID = d.Materiaal_ID
                     Where 
-	                b.Batch_ID = %s""", (batch))
+	                    b.Batch_ID = %s""", (batch))
             for row in cursor:
                 self.tree.insert('', 0, values=(row[0], row[1], row[2], row[3]))
         except :
             pass
 
+        try:
+            cursor.execute("""
+                    SELECT
+                        ROUND(SUM(d.Dagprijs * b.Kilogram),2)
+                    FROM 
+	                    Batch_Materiaal b
+                        INNER JOIN Materiaal m ON b.Materiaal_ID = m.Materiaal_ID
+                        INNER JOIN Dagprijs d on m.Materiaal_ID = d.Materiaal_ID
+                    WHERE
+	                    b.Batch_ID = %s""", (batch))
+            for row in cursor:
+                self.Entry_Totaal.config(state = 'normal')
+                self.Entry_Totaal.delete(0, 'end')
+                self.Entry_Totaal.insert(0, row[0])
+                self.Entry_Totaal.config(state = 'disabled')
+        except :
+            pass
     def InsertMateriaal(self):
         Batch = int(self.Entry_Batch.get())
         Materiaal = int(self.Entry_Materiaal.get())
@@ -405,6 +430,43 @@ class details(tkinter.Tk):
             conn.commit()
         except Exception as e:
             print(e)
+
+class OverzichtMedewerkers(tkinter.Tk):
+    def __init__(self, parent):
+        # constructor voor de tkinter
+        tkinter.Tk.__init__(self, parent)
+        # verwijzing naar de parent
+        self.parent = parent
+        # roep de methode initialize aan
+        self.Overzicht()
+
+    def Overzicht(self):
+        # verdele het form in een gid voor het possitioneren van de gui elementen
+        self.grid()
+        # label naam
+        label_Overzicht = tkinter.Label(self, text='Opbrengsten medewerkers', font=('Calibri', 20), anchor='e')
+        label_Overzicht.grid(column=2, row=1, sticky='EW')
+
+        # label datum
+        label_Datum = tkinter.Label(self, text='Datum: ', anchor="w")
+        label_Datum.grid(column=0, row=2, sticky='EW')
+
+        # entry datum
+        self.Entry_Datum = ttk.Entry(self)
+        self.Entry_Datum.grid(column=1, row=2, sticky='EW')
+
+        # Button overzicht
+        button_Overzicht = tkinter.Button(self, text='Geef overzicht weer')
+        button_Overzicht.grid(column=1, row=3, sticky='EW')
+
+        # Set the treeview
+        self.tree = ttk.Treeview(self, columns=('Medewerker','Opbrengste'))
+        # naam/ positie waardes voor de treeview
+        self.tree.heading('#1', text='Medewerker')
+        self.tree.heading('#2', text='Opbrengste in €')
+        self.tree.column('#0', minwidth=0)
+        self.tree.column('#0', width=0)
+        self.tree.grid(column=2, row=2, columnspan=2, rowspan=10, sticky='nsew', pady=5, padx=5)
 
 if __name__ == "__main__":
     app = Login(None)
